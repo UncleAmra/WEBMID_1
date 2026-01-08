@@ -1,12 +1,21 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for, session
 from models import db, GroupBuy, Product
 from datetime import datetime
 
 app = Flask(__name__)
-# Replace 'thisisme10' with your actual password if different
-app.config['SQLALCHEMY_DATABASE_URI'] = 'postgresql://postgres:thisisme10@localhost:5432/groupbuy_pro'
+
+# --- DATABASE CONFIGURATION ---
+# This looks for 'DATABASE_URL' on Render. If not found, it uses your local PostgreSQL.
+# Note: Render URLs often start with 'postgres://', but SQLAlchemy requires 'postgresql://'
+DATABASE_URL = os.environ.get('DATABASE_URL', 'postgresql://postgres:thisisme10@localhost:5432/groupbuy_pro')
+
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace("postgres://", "postgresql://", 1)
+
+app.config['SQLALCHEMY_DATABASE_URI'] = DATABASE_URL
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.secret_key = 'hotel_booking_secret_key' # Required for session storage
+app.secret_key = 'hotel_booking_secret_key'
 
 db.init_app(app)
 
@@ -59,14 +68,12 @@ def join_pool(pool_id):
     pool = GroupBuy.query.get_or_404(pool_id)
     qty = int(request.form.get('qty', 1))
     
-    # Update global database progress
     pool.current_qty += qty
     if pool.current_qty >= pool.target_qty:
         pool.status = "SUCCESS"
     
     db.session.commit()
 
-    # Save to personal session for 'My Bookings'
     if 'my_bookings' not in session:
         session['my_bookings'] = []
     
@@ -96,7 +103,6 @@ def admin_dashboard():
 @app.route('/delete-pool/<int:pool_id>', methods=['POST'])
 def delete_pool(pool_id):
     pool = GroupBuy.query.get_or_404(pool_id)
-    # This removes the pool from PostgreSQL
     db.session.delete(pool)
     db.session.commit()
     return redirect(url_for('admin_dashboard'))
