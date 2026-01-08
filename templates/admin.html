@@ -1,0 +1,61 @@
+{% extends "layout.html" %}
+{% block content %}
+<div class="container my-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="fw-bold text-dark">🔐 Admin Dashboard</h2>
+        <span class="badge bg-secondary">System Administrator Mode</span>
+    </div>
+
+    <div class="card shadow-sm border-0">
+        <div class="card-body p-0">
+            <div class="table-responsive">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th class="ps-4">ID</th>
+                            <th>Organizer</th>
+                            <th>Room Type</th>
+                            <th>Current / Goal</th>
+                            <th>Status</th>
+                            <th class="text-end pe-4">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for pool in pools %}
+                        <tr>
+                            <td class="ps-4 text-muted">#{{ pool.id }}</td>
+                            <td class="fw-bold">{{ pool.leader_name }}</td>
+                            <td>{{ pool.product.name if pool.product else "Deleted Room" }}</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <span class="me-2">{{ pool.current_qty }} / {{ pool.target_qty }}</span>
+                                    <div class="progress flex-grow-1" style="height: 6px; min-width: 100px;">
+                                        <div class="progress-bar bg-primary" style="width: {{ (pool.current_qty / pool.target_qty * 100) if pool.target_qty > 0 else 0 }}%"></div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                {% if pool.status == 'SUCCESS' %}
+                                    <span class="badge bg-success">Goal Met</span>
+                                {% else %}
+                                    <span class="badge bg-warning text-dark">In Progress</span>
+                                {% endif %}
+                            </td>
+                            <td class="text-end pe-4">
+                                <form action="/delete-pool/{{ pool.id }}" method="POST" onsubmit="return confirm('WARNING: Are you sure you want to delete this pool? This cannot be undone.');" style="display:inline;">
+                                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    
+    <div class="mt-4 p-3 bg-light rounded">
+        <p class="small text-muted mb-0"><strong>Admin Tip:</strong> Deleting a pool here will remove it from the Marketplace immediately. Use this to clear out test data before your final presentation.</p>
+    </div>
+</div>
+{% endblock %}

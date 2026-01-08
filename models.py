@@ -12,10 +12,11 @@ class Product(db.Model):
 class GroupBuy(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, db.ForeignKey('product.id'))
-    leader_name = db.Column(db.String(100), nullable=False) #
-    target_qty = db.Column(db.Integer, nullable=False) #
-    current_qty = db.Column(db.Integer, default=0) #
-    deadline = db.Column(db.DateTime, nullable=False) #
+    leader_name = db.Column(db.String(100), nullable=False)
+    target_qty = db.Column(db.Integer, nullable=False)
+    current_qty = db.Column(db.Integer, default=0)
+    deadline = db.Column(db.DateTime, nullable=False)
+    description = db.Column(db.Text) # ADDED THIS to match your form
     status = db.Column(db.String(20), default="ACTIVE")
     
     product = db.relationship('Product', backref='pools')
