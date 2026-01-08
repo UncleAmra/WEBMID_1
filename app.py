@@ -107,5 +107,11 @@ def delete_pool(pool_id):
     db.session.commit()
     return redirect(url_for('admin_dashboard'))
 
+@app.route('/init-db')
+def init_db():
+    with app.app_context():
+        db.create_all()
+    return "Database tables created successfully! Go back to the site."
+
 if __name__ == "__main__":
     app.run(debug=True)
