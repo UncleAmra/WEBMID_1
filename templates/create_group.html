@@ -1,0 +1,361 @@
+{% extends "base.html" %}
+
+{% block title %}開團 - 團購平台{% endblock %}
+{% block page_title %}開新團購{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-lg-8 offset-lg-2">
+        <!-- Intro Banner -->
+        <div class="alert alert-info alert-dismissible fade show mb-4" role="alert">
+            <h5 class="alert-heading">
+                <i class="fas fa-lightbulb"></i> 開團小提示
+            </h5>
+            <p class="mb-0">
+                選擇你想團購的商品，設定目標人數和截止時間，邀請朋友一起購買享優惠！
+            </p>
+            <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+
+        <div class="card shadow mb-4">
+            <div class="card-header py-3 bg-gradient-primary">
+                <h6 class="m-0 font-weight-bold text-white">
+                    <i class="fas fa-plus-circle"></i> 建立團購
+                </h6>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('create_group') }}" id="createForm">
+                    <!-- Group Name -->
+                    <div class="form-group">
+                        <label for="name" class="font-weight-bold">
+                            團購名稱 <span class="text-danger">*</span>
+                        </label>
+                        <input type="text" class="form-control form-control-lg" id="name" name="name" 
+                               placeholder="例如：iPhone 15 Pro 新品團購、星巴克咖啡豆團購" required>
+                        <small class="form-text text-muted">
+                            <i class="fas fa-info-circle"></i> 給你的團購一個吸引人的名稱
+                        </small>
+                    </div>
+
+                    <!-- Product Selection Mode -->
+                    <div class="form-group">
+                        <label class="font-weight-bold">
+                            商品選擇方式 <span class="text-danger">*</span>
+                        </label>
+                        <div class="btn-group btn-group-toggle d-flex" data-toggle="buttons">
+                            <label class="btn btn-outline-primary active flex-fill">
+                                <input type="radio" name="product_mode" id="mode_existing" value="existing" checked> 
+                                <i class="fas fa-list"></i> 選擇現有商品
+                            </label>
+                            <label class="btn btn-outline-success flex-fill">
+                                <input type="radio" name="product_mode" id="mode_custom" value="custom"> 
+                                <i class="fas fa-plus"></i> 自訂新商品
+                            </label>
+                        </div>
+                    </div>
+
+                    <!-- Existing Product Selection -->
+                    <div id="existingProductSection">
+                        <div class="form-group">
+                            <label for="product_id" class="font-weight-bold">
+                                選擇商品
+                            </label>
+                            <select class="form-control form-control-lg" id="product_id" name="product_id">
+                                <option value="">-- 請選擇要團購的商品 --</option>
+                                {% for product in products %}
+                                <option value="{{ product.id }}" 
+                                        data-price="{{ product.price }}"
+                                        data-name="{{ product.name }}"
+                                        data-desc="{{ product.description }}">
+                                    {{ product.name }} - ${{ product.price }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">
+                                <i class="fas fa-box"></i> 從現有商品中選擇
+                            </small>
+                        </div>
+                    </div>
+
+                    <!-- Custom Product Section -->
+                    <div id="customProductSection" style="display: none;">
+                        <div class="form-group">
+                            <label for="custom_product_name" class="font-weight-bold">
+                                商品名稱
+                            </label>
+                            <input type="text" class="form-control form-control-lg" 
+                                   id="custom_product_name" name="custom_product_name" 
+                                   placeholder="例如：iPhone 15 Pro 256GB、星巴克綜合咖啡豆">
+                            <small class="form-text text-muted">
+                                <i class="fas fa-tag"></i> 輸入你要團購的商品名稱
+                            </small>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="custom_product_price" class="font-weight-bold">
+                                        商品單價
+                                    </label>
+                                    <div class="input-group">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">$</span>
+                                        </div>
+                                        <input type="number" class="form-control form-control-lg" 
+                                               id="custom_product_price" name="custom_product_price" 
+                                               min="1" step="0.01" placeholder="0.00">
+                                    </div>
+                                    <small class="form-text text-muted">
+                                        <i class="fas fa-dollar-sign"></i> 商品的單價
+                                    </small>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label for="custom_product_category" class="font-weight-bold">
+                                        商品分類 <span class="text-muted">(選填)</span>
+                                    </label>
+                                    <select class="form-control form-control-lg" 
+                                            id="custom_product_category" name="custom_product_category">
+                                        <option value="">-- 請選擇分類 --</option>
+                                        <option value="3C電子">3C電子</option>
+                                        <option value="食品飲料">食品飲料</option>
+                                        <option value="生活用品">生活用品</option>
+                                        <option value="服飾配件">服飾配件</option>
+                                        <option value="美妝保養">美妝保養</option>
+                                        <option value="運動健身">運動健身</option>
+                                        <option value="書籍文具">書籍文具</option>
+                                        <option value="其他">其他</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label for="custom_product_desc" class="font-weight-bold">
+                                商品描述 <span class="text-muted">(選填)</span>
+                            </label>
+                            <textarea class="form-control" id="custom_product_desc" 
+                                      name="custom_product_desc" rows="2"
+                                      placeholder="簡單描述商品特色、規格等資訊"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Product Preview -->
+                    <div id="productPreview" class="alert alert-light d-none mb-4">
+                        <h6 class="font-weight-bold mb-2">
+                            <i class="fas fa-eye"></i> 商品預覽
+                        </h6>
+                        <div class="row">
+                            <div class="col-md-8">
+                                <div id="productName" class="font-weight-bold text-primary mb-1"></div>
+                                <div id="productDesc" class="text-muted small mb-2"></div>
+                            </div>
+                            <div class="col-md-4 text-right">
+                                <div class="price-tag-small" id="productPrice"></div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Description -->
+                    <div class="form-group">
+                        <label for="description" class="font-weight-bold">
+                            團購說明
+                        </label>
+                        <textarea class="form-control" id="description" name="description" rows="4"
+                                  placeholder="詳細說明這次團購的資訊，例如：&#10;- 商品規格與特色&#10;- 取貨方式與地點&#10;- 付款方式&#10;- 注意事項"></textarea>
+                        <small class="form-text text-muted">
+                            <i class="fas fa-align-left"></i> 讓參與者更了解這次團購（選填）
+                        </small>
+                    </div>
+
+                    <div class="row">
+                        <!-- Target Quantity -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="target_quantity" class="font-weight-bold">
+                                    目標人數 <span class="text-danger">*</span>
+                                </label>
+                                <input type="number" class="form-control form-control-lg" id="target_quantity" name="target_quantity" 
+                                       min="2" max="1000" value="10" required>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-users"></i> 最少需要 2 人才能成團
+                                </small>
+                            </div>
+                        </div>
+
+                        <!-- Deadline -->
+                        <div class="col-md-6">
+                            <div class="form-group">
+                                <label for="deadline" class="font-weight-bold">
+                                    截止時間 <span class="text-danger">*</span>
+                                </label>
+                                <input type="datetime-local" class="form-control form-control-lg" id="deadline" name="deadline" required>
+                                <small class="form-text text-muted">
+                                    <i class="fas fa-clock"></i> 團購的結束時間
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Price Preview -->
+                    <div class="card bg-light mb-4">
+                        <div class="card-body">
+                            <h6 class="font-weight-bold text-gray-800 mb-3">
+                                <i class="fas fa-calculator"></i> 團購預估
+                            </h6>
+                            <div class="row text-center">
+                                <div class="col-md-4 mb-2">
+                                    <small class="text-muted d-block">單價</small>
+                                    <div class="h4 mb-0 text-primary" id="preview-price">-</div>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <small class="text-muted d-block">目標人數</small>
+                                    <div class="h4 mb-0 text-info" id="preview-quantity">10</div>
+                                </div>
+                                <div class="col-md-4 mb-2">
+                                    <small class="text-muted d-block">總金額</small>
+                                    <div class="h4 mb-0 text-success" id="preview-total">-</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Submit Buttons -->
+                    <div class="form-group mb-0">
+                        <button type="submit" class="btn btn-primary btn-lg btn-block">
+                            <i class="fas fa-check-circle"></i> 建立團購
+                        </button>
+                        <a href="{{ url_for('browse') }}" class="btn btn-secondary btn-lg btn-block">
+                            <i class="fas fa-times"></i> 取消
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Tips Card -->
+        <div class="card shadow mb-4 bg-gradient-info text-white">
+            <div class="card-body">
+                <h6 class="text-white mb-3">
+                    <i class="fas fa-star"></i> 團購成功秘訣
+                </h6>
+                <ul class="mb-0">
+                    <li>選擇熱門或有需求的商品</li>
+                    <li>設定合理的目標人數（建議 5-20 人）</li>
+                    <li>給予充足的時間（至少 3-7 天）</li>
+                    <li>在團購說明中提供詳細資訊</li>
+                    <li>分享給朋友和社群，邀請更多人參與</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Set minimum deadline to current time + 1 hour
+    const now = new Date();
+    now.setHours(now.getHours() + 1);
+    now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+    document.getElementById('deadline').min = now.toISOString().slice(0, 16);
+    
+    // Product mode toggle
+    document.querySelectorAll('input[name="product_mode"]').forEach(radio => {
+        radio.addEventListener('change', function() {
+            const isExisting = this.value === 'existing';
+            document.getElementById('existingProductSection').style.display = isExisting ? 'block' : 'none';
+            document.getElementById('customProductSection').style.display = isExisting ? 'none' : 'block';
+            
+            // Update required fields
+            document.getElementById('product_id').required = isExisting;
+            document.getElementById('custom_product_name').required = !isExisting;
+            document.getElementById('custom_product_price').required = !isExisting;
+            
+            // Clear and update preview
+            if (!isExisting) {
+                document.getElementById('product_id').value = '';
+                document.getElementById('productPreview').classList.add('d-none');
+            }
+            updatePreview();
+        });
+    });
+    
+    // Existing product selection handler
+    document.getElementById('product_id').addEventListener('change', function() {
+        const selected = this.options[this.selectedIndex];
+        const price = selected.dataset.price;
+        const name = selected.dataset.name;
+        const desc = selected.dataset.desc;
+        
+        if (price) {
+            // Show product preview
+            document.getElementById('productPreview').classList.remove('d-none');
+            document.getElementById('productName').textContent = name;
+            document.getElementById('productDesc').textContent = desc || '無描述';
+            document.getElementById('productPrice').textContent = '$' + price;
+            
+            // Update price preview
+            updatePreview();
+        } else {
+            document.getElementById('productPreview').classList.add('d-none');
+            document.getElementById('preview-price').textContent = '-';
+            document.getElementById('preview-total').textContent = '-';
+        }
+    });
+    
+    // Custom product price input handler
+    document.getElementById('custom_product_price').addEventListener('input', updatePreview);
+    document.getElementById('custom_product_name').addEventListener('input', updateCustomPreview);
+    
+    function updateCustomPreview() {
+        const name = document.getElementById('custom_product_name').value;
+        const price = document.getElementById('custom_product_price').value;
+        const desc = document.getElementById('custom_product_desc').value;
+        
+        if (name && price) {
+            document.getElementById('productPreview').classList.remove('d-none');
+            document.getElementById('productName').textContent = name;
+            document.getElementById('productDesc').textContent = desc || '自訂商品';
+            document.getElementById('productPrice').textContent = '$' + parseFloat(price).toFixed(2);
+        } else {
+            document.getElementById('productPreview').classList.add('d-none');
+        }
+    }
+    
+    // Quantity change handler
+    document.getElementById('target_quantity').addEventListener('input', updatePreview);
+    
+    function updatePreview() {
+        const mode = document.querySelector('input[name="product_mode"]:checked').value;
+        let price = 0;
+        
+        if (mode === 'existing') {
+            const productSelect = document.getElementById('product_id');
+            const selected = productSelect.options[productSelect.selectedIndex];
+            price = parseFloat(selected.dataset.price) || 0;
+        } else {
+            price = parseFloat(document.getElementById('custom_product_price').value) || 0;
+            updateCustomPreview();
+        }
+        
+        const quantity = parseInt(document.getElementById('target_quantity').value) || 0;
+        
+        if (price && quantity) {
+            const total = (price * quantity).toFixed(2);
+            document.getElementById('preview-price').textContent = '$' + price.toFixed(2);
+            document.getElementById('preview-quantity').textContent = quantity + ' 人';
+            document.getElementById('preview-total').textContent = '$' + total;
+        } else {
+            document.getElementById('preview-price').textContent = '-';
+            document.getElementById('preview-quantity').textContent = quantity + ' 人';
+            document.getElementById('preview-total').textContent = '-';
+        }
+    }
+</script>
+{% endblock %}

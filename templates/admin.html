@@ -1,61 +1,238 @@
-{% extends "layout.html" %}
-{% block content %}
-<div class="container my-5">
-    <div class="d-flex justify-content-between align-items-center mb-4">
-        <h2 class="fw-bold text-dark">🔐 Admin Dashboard</h2>
-        <span class="badge bg-secondary">System Administrator Mode</span>
-    </div>
+{% extends "base.html" %}
 
-    <div class="card shadow-sm border-0">
-        <div class="card-body p-0">
-            <div class="table-responsive">
-                <table class="table table-hover align-middle mb-0">
-                    <thead class="table-light">
-                        <tr>
-                            <th class="ps-4">ID</th>
-                            <th>Organizer</th>
-                            <th>Room Type</th>
-                            <th>Current / Goal</th>
-                            <th>Status</th>
-                            <th class="text-end pe-4">Actions</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for pool in pools %}
-                        <tr>
-                            <td class="ps-4 text-muted">#{{ pool.id }}</td>
-                            <td class="fw-bold">{{ pool.leader_name }}</td>
-                            <td>{{ pool.product.name if pool.product else "Deleted Room" }}</td>
-                            <td>
-                                <div class="d-flex align-items-center">
-                                    <span class="me-2">{{ pool.current_qty }} / {{ pool.target_qty }}</span>
-                                    <div class="progress flex-grow-1" style="height: 6px; min-width: 100px;">
-                                        <div class="progress-bar bg-primary" style="width: {{ (pool.current_qty / pool.target_qty * 100) if pool.target_qty > 0 else 0 }}%"></div>
-                                    </div>
-                                </div>
-                            </td>
-                            <td>
-                                {% if pool.status == 'SUCCESS' %}
-                                    <span class="badge bg-success">Goal Met</span>
-                                {% else %}
-                                    <span class="badge bg-warning text-dark">In Progress</span>
-                                {% endif %}
-                            </td>
-                            <td class="text-end pe-4">
-                                <form action="/delete-pool/{{ pool.id }}" method="POST" onsubmit="return confirm('WARNING: Are you sure you want to delete this pool? This cannot be undone.');" style="display:inline;">
-                                    <button type="submit" class="btn btn-outline-danger btn-sm">Delete</button>
-                                </form>
-                            </td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+{% block title %}後台管理 - 團購平台{% endblock %}
+{% block page_title %}{% if session.get('role') == 'admin' %}後台管理{% else %}我的團購管理{% endif %}{% endblock %}
+
+{% block content %}
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <p class="text-gray-600">管理所有團購活動，追蹤進度與狀態</p>
+</div>
+
+<!-- Statistics Row -->
+<div class="row">
+    <!-- Total Groups Card -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            總團購數</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ total_groups }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-shopping-cart fa-2x text-gray-300"></i>
+                    </div>
+                </div>
             </div>
         </div>
     </div>
-    
-    <div class="mt-4 p-3 bg-light rounded">
-        <p class="small text-muted mb-0"><strong>Admin Tip:</strong> Deleting a pool here will remove it from the Marketplace immediately. Use this to clear out test data before your final presentation.</p>
+
+    <!-- Active Groups Card -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            進行中</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ active_groups }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Groups Card -->
+    <div class="col-xl-4 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            成功成團</div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">{{ success_groups }}</div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-check-circle fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Groups Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-list"></i> 團購列表
+        </h6>
+        <div class="dropdown no-arrow">
+            <a class="dropdown-toggle" href="#" role="button" id="dropdownMenuLink"
+                data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <i class="fas fa-ellipsis-v fa-sm fa-fw text-gray-400"></i>
+            </a>
+            <div class="dropdown-menu dropdown-menu-right shadow animated--fade-in"
+                aria-labelledby="dropdownMenuLink">
+                <div class="dropdown-header">操作選項:</div>
+                <a class="dropdown-item" href="{{ url_for('create_group') }}">
+                    <i class="fas fa-plus fa-sm fa-fw mr-2 text-gray-400"></i>
+                    新增團購
+                </a>
+            </div>
+        </div>
+    </div>
+    <div class="card-body">
+        {% if groups %}
+        <div class="table-responsive">
+            <table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>團購名稱</th>
+                        <th>商品</th>
+                        <th>團長</th>
+                        <th>進度</th>
+                        <th>截止時間</th>
+                        <th>狀態</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for group in groups %}
+                    <tr>
+                        <td>{{ group.id }}</td>
+                        <td>
+                            <a href="{{ url_for('group_detail', group_id=group.id) }}" class="font-weight-bold">
+                                {{ group.name }}
+                            </a>
+                        </td>
+                        <td>{{ group.product.name }}</td>
+                        <td>{{ group.leader.name }}</td>
+                        <td>
+                            <div class="progress" style="height: 20px;">
+                                <div class="progress-bar bg-{% if group.progress_percentage >= 100 %}success{% else %}primary{% endif %}" 
+                                     role="progressbar" 
+                                     style="width: {{ group.progress_percentage }}%;" 
+                                     aria-valuenow="{{ group.current_quantity }}" 
+                                     aria-valuemin="0" 
+                                     aria-valuemax="{{ group.target_quantity }}">
+                                    {{ group.current_quantity }}/{{ group.target_quantity }}
+                                </div>
+                            </div>
+                            <small class="text-muted">{{ group.progress_percentage }}%</small>
+                        </td>
+                        <td>
+                            <small class="{% if group.is_expired %}text-danger{% else %}text-muted{% endif %}">
+                                {{ group.deadline.strftime('%Y-%m-%d %H:%M') }}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge badge-{% if group.status == 'ACTIVE' %}success{% elif group.status == 'SUCCESS' %}info{% elif group.status == 'CLOSED' %}secondary{% else %}danger{% endif %}">
+                                {{ group.status }}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="btn-group" role="group">
+                                <a href="{{ url_for('group_detail', group_id=group.id) }}" 
+                                   class="btn btn-sm btn-info" title="查看">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                {% if group.status == 'ACTIVE' %}
+                                <form method="POST" action="{{ url_for('close_group', group_id=group.id) }}" 
+                                      style="display: inline;" 
+                                      onsubmit="return confirm('確定要關閉此團購嗎？');">
+                                    <button type="submit" class="btn btn-sm btn-warning" title="關閉">
+                                        <i class="fas fa-ban"></i>
+                                    </button>
+                                </form>
+                                {% endif %}
+                                <form method="POST" action="{{ url_for('delete_group', group_id=group.id) }}" 
+                                      style="display: inline;" 
+                                      onsubmit="return confirm('確定要刪除此團購嗎？此操作無法復原！');">
+                                    <button type="submit" class="btn btn-sm btn-danger" title="刪除">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="text-center py-5">
+            <i class="fas fa-inbox fa-3x text-gray-300 mb-3"></i>
+            <h5 class="text-gray-600">還沒有團購記錄</h5>
+            <p class="text-gray-500">開始創建第一個團購吧！</p>
+            <a href="{{ url_for('create_group') }}" class="btn btn-primary mt-3">
+                <i class="fas fa-plus-circle"></i> 創建團購
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Filter & Search Tips Card -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-info">
+            <i class="fas fa-info-circle"></i> 管理提示
+        </h6>
+    </div>
+    <div class="card-body">
+        <p class="mb-2"><strong>狀態說明：</strong></p>
+        <ul class="mb-3">
+            <li><span class="badge badge-success">ACTIVE</span> - 團購進行中，可以繼續跟團</li>
+            <li><span class="badge badge-info">SUCCESS</span> - 達到目標人數，團購成功</li>
+            <li><span class="badge badge-secondary">CLOSED</span> - 團長手動關閉</li>
+            <li><span class="badge badge-danger">FAILED</span> - 截止時間到但未達目標，團購失敗</li>
+        </ul>
+        <p class="mb-2"><strong>操作說明：</strong></p>
+        <ul class="mb-0">
+            <li>點擊團購名稱或 <i class="fas fa-eye"></i> 按鈕查看詳細資訊</li>
+            <li>使用 <i class="fas fa-ban"></i> 按鈕可以提前關閉進行中的團購</li>
+            <li>使用 <i class="fas fa-trash"></i> 按鈕刪除團購（會同時刪除相關訂單）</li>
+            <li>系統會自動更新過期團購的狀態</li>
+        </ul>
+    </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<!-- Page level plugins -->
+<script src="{{ url_for('static', filename='vendor/datatables/jquery.dataTables.min.js') }}"></script>
+<script src="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.js') }}"></script>
+
+<script>
+    $(document).ready(function() {
+        $('#dataTable').DataTable({
+            "language": {
+                "lengthMenu": "顯示 _MENU_ 筆資料",
+                "zeroRecords": "沒有符合的資料",
+                "info": "顯示第 _START_ 至 _END_ 筆資料，共 _TOTAL_ 筆",
+                "infoEmpty": "沒有資料",
+                "infoFiltered": "(從 _MAX_ 筆資料中過濾)",
+                "search": "搜尋：",
+                "paginate": {
+                    "first": "第一頁",
+                    "last": "最後一頁",
+                    "next": "下一頁",
+                    "previous": "上一頁"
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link href="{{ url_for('static', filename='vendor/datatables/dataTables.bootstrap4.min.css') }}" rel="stylesheet">
 {% endblock %}

@@ -1,0 +1,301 @@
+/* 團購平台自定義樣式 */
+
+/* 品牌色調整 */
+:root {
+    --primary-color: #4e73df;
+    --success-color: #1cc88a;
+    --info-color: #36b9cc;
+    --warning-color: #f6c23e;
+    --danger-color: #e74a3b;
+}
+
+/* 團購卡片優化 */
+.group-card {
+    transition: transform 0.2s, box-shadow 0.2s;
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.group-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 0.5rem 1.5rem rgba(0, 0, 0, 0.15) !important;
+}
+
+.group-card .card-body {
+    padding: 1.5rem;
+}
+
+/* 商品圖片樣式 */
+.product-image {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.product-image-detail {
+    max-height: 400px;
+    width: 100%;
+    object-fit: contain;
+    border-radius: 10px;
+    background: #f8f9fc;
+    padding: 20px;
+}
+
+/* 進度條優化 */
+.progress-group {
+    height: 30px;
+    border-radius: 15px;
+    background: #e0e0e0;
+    overflow: hidden;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.progress-group .progress-bar {
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: width 0.6s ease;
+}
+
+/* 狀態徽章 */
+.status-badge {
+    padding: 0.5rem 1rem;
+    border-radius: 20px;
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+/* 價格標籤 */
+.price-tag {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: #e74a3b;
+    text-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+.price-tag-small {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #e74a3b;
+}
+
+/* 團購資訊卡片 */
+.info-item {
+    padding: 0.75rem;
+    margin-bottom: 0.5rem;
+    background: #f8f9fc;
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+}
+
+/* 參與成員列表 */
+.member-item {
+    padding: 1rem;
+    background: white;
+    border-radius: 8px;
+    margin-bottom: 0.75rem;
+    border: 1px solid #e3e6f0;
+    transition: all 0.2s;
+}
+
+.member-item:hover {
+    border-color: var(--primary-color);
+    box-shadow: 0 2px 8px rgba(78, 115, 223, 0.1);
+}
+
+/* 時間倒數提示 */
+.deadline-warning {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 1;
+    }
+    50% {
+        opacity: 0.7;
+    }
+}
+
+/* 空狀態插圖 */
+.empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    color: #d1d3e2;
+    margin-bottom: 1.5rem;
+}
+
+/* 數量選擇器 */
+.quantity-selector {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.quantity-input {
+    text-align: center;
+    font-size: 1.2rem;
+    font-weight: 600;
+    max-width: 100px;
+}
+
+/* 團購標籤 */
+.group-tag {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 15px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-right: 0.5rem;
+}
+
+/* 熱門標記 */
+.hot-badge {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+    color: white;
+    padding: 0.25rem 0.75rem;
+    border-radius: 15px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    z-index: 10;
+}
+
+/* 統計卡片 */
+.stat-card {
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+.stat-card .card-body {
+    padding: 1.5rem;
+}
+
+/* 按鈕樣式優化 */
+.btn-join {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    border-radius: 25px;
+    padding: 0.75rem 2rem;
+    font-weight: 600;
+    transition: all 0.3s;
+}
+
+.btn-join:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+}
+
+/* 團購詳情布局 */
+.detail-sidebar {
+    position: sticky;
+    top: 20px;
+}
+
+/* 響應式調整 */
+@media (max-width: 768px) {
+    .product-image-detail {
+        max-height: 250px;
+    }
+    
+    .price-tag {
+        font-size: 1.4rem;
+    }
+    
+    .detail-sidebar {
+        position: relative;
+        top: 0;
+    }
+}
+
+/* 商品分類標籤 */
+.category-badge {
+    background: #e7f3ff;
+    color: #2196F3;
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+/* Loading 動畫 */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid rgba(255,255,255,.3);
+    border-radius: 50%;
+    border-top-color: white;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* 成功提示動畫 */
+.success-icon {
+    animation: scaleIn 0.5s ease-out;
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* 卡片圖片容器 */
+.card-image-container {
+    position: relative;
+    width: 100%;
+    height: 200px;
+    overflow: hidden;
+    background: #f8f9fc;
+}
+
+.card-image-container img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+}
+
+.card-image-container:hover img {
+    transform: scale(1.05);
+}
+
+/* 團購資訊摘要 */
+.group-summary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    padding: 1.5rem;
+    border-radius: 10px;
+    margin-bottom: 1.5rem;
+}
+
+.group-summary h6 {
+    color: white;
+    opacity: 0.9;
+    margin-bottom: 0.5rem;
+}
+
+.group-summary .value {
+    font-size: 1.5rem;
+    font-weight: 700;
+}

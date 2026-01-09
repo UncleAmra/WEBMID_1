@@ -1,0 +1,47 @@
+version: '3.8'
+
+services:
+  # PostgreSQL 資料庫
+  db:
+    image: postgres:15-alpine
+    container_name: groupbuy_db
+    environment:
+      POSTGRES_DB: groupbuy_system
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Flask 應用
+  web:
+    build: .
+    container_name: groupbuy_web
+    environment:
+      DATABASE_URL: postgresql://postgres:postgres123@db:5432/groupbuy_system
+      SECRET_KEY: your-secret-key-change-in-production
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - .:/app
+    command: >
+      sh -c "
+        echo '等待資料庫啟動...' &&
+        sleep 5 &&
+        echo '初始化資料庫...' &&
+        python3 -c 'from app import app, db; app.app_context().push(); db.create_all(); print(\"資料庫初始化完成\")' &&
+        echo '啟動應用...' &&
+        gunicorn --bind 0.0.0.0:5000 --reload app:app
+      "
+
+volumes:
+  postgres_data:

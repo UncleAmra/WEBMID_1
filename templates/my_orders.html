@@ -1,0 +1,236 @@
+{% extends "base.html" %}
+
+{% block title %}我的訂單 - 團購平台{% endblock %}
+{% block page_title %}我的訂單{% endblock %}
+
+{% block content %}
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">
+            <i class="fas fa-shopping-bag"></i> 我的訂單
+        </h1>
+        <p class="text-gray-600 mt-2">查看你參與的所有團購訂單</p>
+    </div>
+</div>
+
+<!-- Orders Table -->
+<div class="card shadow mb-4">
+    <div class="card-header py-3 bg-gradient-primary">
+        <h6 class="m-0 font-weight-bold text-white">
+            <i class="fas fa-list"></i> 訂單列表
+        </h6>
+    </div>
+    <div class="card-body">
+        {% if orders %}
+        <div class="table-responsive">
+            <table class="table table-hover" width="100%" cellspacing="0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>#</th>
+                        <th>團購資訊</th>
+                        <th>商品</th>
+                        <th class="text-center">數量</th>
+                        <th class="text-right">金額</th>
+                        <th class="text-center">狀態</th>
+                        <th>時間</th>
+                        <th class="text-center">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for order in orders %}
+                    <tr>
+                        <td class="font-weight-bold text-primary">#{{ order.id }}</td>
+                        <td>
+                            <div class="font-weight-bold">{{ order.group_buying.name }}</div>
+                            <small class="text-muted">
+                                <i class="fas fa-user-circle"></i>
+                                團長：{{ order.group_buying.leader.name }}
+                            </small>
+                        </td>
+                        <td>
+                            <span class="badge badge-light">
+                                {{ order.group_buying.product.name }}
+                            </span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-primary badge-pill px-3 py-2">
+                                {{ order.quantity }} 件
+                            </span>
+                        </td>
+                        <td class="text-right">
+                            <span class="price-tag-small">${{ order.total_price }}</span>
+                        </td>
+                        <td class="text-center">
+                            <span class="badge badge-{% if order.payment_status == 'PAID' %}success{% elif order.payment_status == 'PENDING' %}warning{% else %}danger{% endif %} badge-pill px-3 py-2">
+                                {% if order.payment_status == 'PAID' %}
+                                    ✓ 已付款
+                                {% elif order.payment_status == 'PENDING' %}
+                                    ⏳ 待付款
+                                {% else %}
+                                    ✗ 已取消
+                                {% endif %}
+                            </span>
+                        </td>
+                        <td>
+                            <small class="text-muted">
+                                {{ order.created_at.strftime('%Y-%m-%d') }}<br>
+                                {{ order.created_at.strftime('%H:%M') }}
+                            </small>
+                        </td>
+                        <td class="text-center">
+                            <a href="{{ url_for('group_detail', group_id=order.group_buying_id) }}" 
+                               class="btn btn-sm btn-info btn-circle" title="查看團購">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <i class="fas fa-shopping-bag"></i>
+            <h4 class="text-gray-700 mb-3">還沒有訂單記錄</h4>
+            <p class="text-gray-500 mb-4">
+                快去探索熱門團購，找到你喜歡的商品！<br>
+                和朋友一起購買，享受更優惠的價格 🎉
+            </p>
+            <a href="{{ url_for('browse') }}" class="btn btn-primary btn-lg">
+                <i class="fas fa-shopping-cart"></i> 瀏覽團購
+            </a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Summary Cards -->
+{% if orders %}
+<div class="row">
+    <!-- Total Orders -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-primary shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
+                            總訂單數
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {{ orders|length }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-shopping-bag fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Amount -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-success shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
+                            總消費金額
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            ${% set total = namespace(value=0) %}
+                            {% for order in orders %}
+                                {% set total.value = total.value + order.total_price %}
+                            {% endfor %}
+                            {{ "%.2f"|format(total.value) }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-dollar-sign fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Total Quantity -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-info shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-info text-uppercase mb-1">
+                            購買件數
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% set qty = namespace(value=0) %}
+                            {% for order in orders %}
+                                {% set qty.value = qty.value + order.quantity %}
+                            {% endfor %}
+                            {{ qty.value }} 件
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-box fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pending Orders -->
+    <div class="col-xl-3 col-md-6 mb-4">
+        <div class="card border-left-warning shadow h-100 py-2">
+            <div class="card-body">
+                <div class="row no-gutters align-items-center">
+                    <div class="col mr-2">
+                        <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
+                            待處理訂單
+                        </div>
+                        <div class="h5 mb-0 font-weight-bold text-gray-800">
+                            {% set pending = namespace(value=0) %}
+                            {% for order in orders %}
+                                {% if order.payment_status == 'PENDING' %}
+                                    {% set pending.value = pending.value + 1 %}
+                                {% endif %}
+                            {% endfor %}
+                            {{ pending.value }}
+                        </div>
+                    </div>
+                    <div class="col-auto">
+                        <i class="fas fa-clock fa-2x text-gray-300"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Quick Actions -->
+<div class="row">
+    <div class="col-12">
+        <div class="card shadow bg-gradient-info text-white">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="text-white mb-2">
+                            <i class="fas fa-star"></i> 繼續探索更多團購
+                        </h5>
+                        <p class="mb-0">
+                            發現更多熱門商品，邀請朋友一起團購，享受更優惠的價格！
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <a href="{{ url_for('browse') }}" class="btn btn-light btn-lg mt-3 mt-md-0">
+                            <i class="fas fa-shopping-cart"></i> 瀏覽團購
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}

@@ -1,0 +1,160 @@
+{% extends "base.html" %}
+
+{% block title %}瀏覽團購 - 團購平台{% endblock %}
+{% block page_title %}探索熱門團購{% endblock %}
+
+{% block content %}
+<!-- Page Heading -->
+<div class="d-sm-flex align-items-center justify-content-between mb-4">
+    <div>
+        <h1 class="h3 mb-0 text-gray-800">🛒 熱門團購</h1>
+        <p class="text-gray-600 mt-2">快來參加進行中的團購，一起省更多！</p>
+    </div>
+    <a href="{{ url_for('create_group') }}" class="d-none d-sm-inline-block btn btn-primary shadow-sm">
+        <i class="fas fa-plus-circle fa-sm text-white-50"></i> 我要開團
+    </a>
+</div>
+
+<!-- Mobile Create Button -->
+<div class="d-sm-none mb-3">
+    <a href="{{ url_for('create_group') }}" class="btn btn-primary btn-block">
+        <i class="fas fa-plus-circle"></i> 我要開團
+    </a>
+</div>
+
+<!-- Content Row -->
+<div class="row">
+    {% if groups %}
+        {% for group in groups %}
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card group-card shadow h-100">
+                <!-- Product Image -->
+                {% if group.product.image_url %}
+                <div class="card-image-container">
+                    <img src="{{ group.product.image_url }}" alt="{{ group.product.name }}" class="product-image">
+                    {% if group.progress_percentage >= 80 %}
+                    <span class="hot-badge">🔥 熱賣中</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+                
+                <div class="card-body">
+                    <!-- Category & Product Name -->
+                    <div class="mb-2">
+                        <span class="category-badge">
+                            <i class="fas fa-tag"></i> {{ group.product.name }}
+                        </span>
+                    </div>
+                    
+                    <!-- Group Name -->
+                    <h5 class="font-weight-bold text-gray-800 mb-2">
+                        {{ group.name }}
+                    </h5>
+                    
+                    <!-- Leader Info -->
+                    <div class="text-sm text-gray-600 mb-3">
+                        <i class="fas fa-user-circle"></i> 
+                        團長：<strong>{{ group.leader.name }}</strong>
+                    </div>
+                    
+                    <!-- Price -->
+                    <div class="mb-3">
+                        <span class="price-tag-small">
+                            <i class="fas fa-dollar-sign"></i>{{ group.product.price }}
+                        </span>
+                        <span class="text-muted">/ 件</span>
+                    </div>
+                    
+                    <!-- Progress Bar -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-1">
+                            <small class="text-muted">
+                                <i class="fas fa-users"></i> 團購進度
+                            </small>
+                            <small class="font-weight-bold text-primary">
+                                {{ group.progress_percentage }}%
+                            </small>
+                        </div>
+                        <div class="progress progress-group">
+                            <div class="progress-bar bg-{% if group.progress_percentage >= 100 %}success{% elif group.progress_percentage >= 70 %}info{% else %}primary{% endif %}" 
+                                 role="progressbar" 
+                                 style="width: {{ group.progress_percentage }}%" 
+                                 aria-valuenow="{{ group.current_quantity }}" 
+                                 aria-valuemin="0" 
+                                 aria-valuemax="{{ group.target_quantity }}">
+                                {{ group.current_quantity }}/{{ group.target_quantity }}
+                            </div>
+                        </div>
+                        <small class="text-muted">
+                            {% if group.remaining_slots > 0 %}
+                                還剩 <strong class="text-danger">{{ group.remaining_slots }}</strong> 個名額
+                            {% else %}
+                                <strong class="text-success">✓ 已額滿</strong>
+                            {% endif %}
+                        </small>
+                    </div>
+                    
+                    <!-- Deadline -->
+                    <div class="mb-3 info-item">
+                        <small class="text-muted">
+                            <i class="fas fa-clock"></i> 截止時間
+                        </small>
+                        <div class="font-weight-bold text-dark">
+                            {{ group.deadline.strftime('%m月%d日 %H:%M') }}
+                        </div>
+                    </div>
+                    
+                    <!-- Action Button -->
+                    <a href="{{ url_for('group_detail', group_id=group.id) }}" 
+                       class="btn btn-primary btn-block btn-join">
+                        <i class="fas fa-shopping-cart"></i> 查看詳情 & 立即跟團
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    {% else %}
+        <div class="col-12">
+            <div class="card shadow mb-4">
+                <div class="card-body empty-state">
+                    <i class="fas fa-shopping-cart"></i>
+                    <h4 class="text-gray-700 mb-3">目前沒有進行中的團購</h4>
+                    <p class="text-gray-500 mb-4">
+                        還沒有人開團，成為第一個發起團購的人吧！<br>
+                        邀請朋友一起購買，享受更優惠的價格 🎉
+                    </p>
+                    <a href="{{ url_for('create_group') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus-circle"></i> 立即開團
+                    </a>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+
+<!-- Info Banner -->
+<div class="row mt-4">
+    <div class="col-12">
+        <div class="card bg-gradient-primary text-white shadow">
+            <div class="card-body">
+                <div class="row align-items-center">
+                    <div class="col-md-8">
+                        <h5 class="text-white mb-2">
+                            <i class="fas fa-lightbulb"></i> 如何參與團購？
+                        </h5>
+                        <p class="mb-0">
+                            1️⃣ 選擇喜歡的商品 → 2️⃣ 點擊「跟團」加入 → 3️⃣ 等待團購成功 → 4️⃣ 收到商品通知
+                        </p>
+                    </div>
+                    <div class="col-md-4 text-center">
+                        <a href="{{ url_for('create_group') }}" class="btn btn-light btn-lg mt-3 mt-md-0">
+                            <i class="fas fa-plus"></i> 我也要開團
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
